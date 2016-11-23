@@ -1,6 +1,6 @@
 {
   "name": "Daily_Weight_Fat_Control",
-  "author": "MakeAwesomeHappen",
+  "author": "Casainho",
   "version": "1.0.0",
   "keywords": ["pebble-app"],
   "private": true,
@@ -11,10 +11,7 @@
     "sdkVersion": "3",
     "enableMultiJS": true,
     "targetPlatforms": [
-      "aplite",
-      "basalt",
-      "chalk",
-      "diorite"
+      "aplite"
     ],
     "watchapp": {
       "watchface": false
