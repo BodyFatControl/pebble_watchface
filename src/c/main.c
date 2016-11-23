@@ -5,6 +5,9 @@
 static Window *s_main_window;
 static Layer *s_background1_layer;
 static Layer *s_background2_layer;
+static TextLayer *s_one_text_layer;
+static TextLayer *s_two_text_layer;
+static TextLayer *s_three_text_layer;
 
 static void background1_layer_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(s_background1_layer);
@@ -36,15 +39,36 @@ static void main_window_load(Window *window) {
   // Redraw this as soon as possible
   layer_mark_dirty(s_background1_layer);
 
+//  s_one_text_layer = text_layer_create(GRect(1, 1, 8, 15));
+//  text_layer_set_text_color(s_one_text_layer, GColorBlack);
+//  text_layer_set_background_color(s_one_text_layer, GColorWhite);
+//  text_layer_set_text_color(s_one_text_layer, GColorWhite);
+//  text_layer_set_background_color(s_one_text_layer, GColorBlack);
+//  text_layer_set_overflow_mode(s_one_text_layer, GTextOverflowModeWordWrap);
+//  //text_layer_set_alignment(s_one_text_layer, GTextAlignmentCenter);
+//  text_layer_set_text(s_one_text_layer, "1");
+
+  s_three_text_layer = text_layer_create(GRect(136, 75, 8, 15));
+  text_layer_set_text_color(s_three_text_layer, GColorBlack);
+  text_layer_set_background_color(s_three_text_layer, GColorWhite);
+//  text_layer_set_text_color(s_three_text_layer, GColorWhite);
+//  text_layer_set_background_color(s_three_text_layer, GColorBlack);
+  text_layer_set_overflow_mode(s_three_text_layer, GTextOverflowModeWordWrap);
+  //text_layer_set_alignment(s_one_text_layer, GTextAlignmentCenter);
+  text_layer_set_text(s_three_text_layer, "3");
+
   // Add to the Window
   layer_add_child(window_layer, s_background1_layer);
   layer_add_child(window_layer, s_background2_layer);
+  layer_add_child(window_layer, text_layer_get_layer(s_three_text_layer));
 }
 
 static void main_window_unload(Window *window) {
   // Destroy Layer
   layer_destroy(s_background1_layer);
-  layer_destroy(s_background2_layer);
+  text_layer_destroy(s_one_text_layer);
+  text_layer_destroy(s_two_text_layer);
+  text_layer_destroy(s_three_text_layer);
 }
 
 static void init() {
