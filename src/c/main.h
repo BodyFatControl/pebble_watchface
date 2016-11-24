@@ -4,106 +4,47 @@
 
 #define NUM_CLOCK_TICKS 11
 
-static const struct GPathInfo ANALOG_BG_POINTS[] = {
-  { 4,
-    (GPoint []) {
-      {68, 0},
-      {71, 0},
-      {71, 12},
-      {68, 12}
-    }
-  },
-  { 4, (GPoint []){
-      {72, 0},
-      {75, 0},
-      {75, 12},
-      {72, 12}
-    }
-  },
-  { 4, (GPoint []){
-      {112, 10},
-      {114, 12},
-      {108, 23},
-      {106, 21}
-    }
-  },
-  { 4, (GPoint []){
-      {132, 47},
-      {144, 40},
-      {144, 44},
-      {135, 49}
-    }
-  },
-  { 4, (GPoint []){
-      {135, 118},
-      {144, 123},
-      {144, 126},
-      {132, 120}
-    }
-  },
-  { 4, (GPoint []){
-      {108, 144},
-      {114, 154},
-      {112, 157},
-      {106, 147}
-    }
-  },
-  { 4, (GPoint []){
-      {70, 155},
-      {73, 155},
-      {73, 167},
-      {70, 167}
-    }
-  },
-  { 4, (GPoint []){
-      {32, 10},
-      {30, 12},
-      {36, 23},
-      {38, 21}
-    }
-  },
-  { 4, (GPoint []){
-      {12, 47},
-      {-1, 40},
-      {-1, 44},
-      {9, 49}
-    }
-  },
-  { 4, (GPoint []){
-      {9, 118},
-      {-1, 123},
-      {-1, 126},
-      {12, 120}
-    }
-  },
-  { 4, (GPoint []){
-      {36, 144},
-      {30, 154},
-      {32, 157},
-      {38, 147}
-    }
-  },
+#define TANG_30_X1000 0.578 * 1000.0
+#define TANG_60_X1000 1.732 * 1000.0
 
-};
+#define PBL_DISPLAY_WIDTH_HALF PBL_DISPLAY_WIDTH / 2
+#define PBL_DISPLAY_HEIGHT_HALF PBL_DISPLAY_HEIGHT / 2
 
-static const GPathInfo MINUTE_HAND_POINTS = {
-  6, (GPoint []) {
-    { -4, 20 },
-    { 4, 20 },
-    { 5, 0 },
-    { 4, -80 },
-    { -4, -80},
-    { -5, 0 }
-  }
-};
+#define CIRCLE_RADIUS 2
+#define CIRCLE_CORNER_OFFSET 2
 
-static const GPathInfo HOUR_HAND_POINTS = {
-  6, (GPoint []){
-    {-4, 20},
-    {4, 20},
-    { 5, 0 },
-    {4, -60},
-    {-4, -60},
-    { -5, 0 }
-  }
-};
+#define CIRCLE_ONE_POS_X (PBL_DISPLAY_WIDTH_HALF + ((TANG_30_X1000*(PBL_DISPLAY_HEIGHT_HALF)/1000)))
+#define CIRCLE_ONE_POS_Y CIRCLE_RADIUS + CIRCLE_CORNER_OFFSET
+
+#define CIRCLE_TWO_POS_X PBL_DISPLAY_WIDTH - (CIRCLE_RADIUS + CIRCLE_CORNER_OFFSET)
+#define CIRCLE_TWO_POS_Y PBL_DISPLAY_HEIGHT_HALF - (TANG_30_X1000*(PBL_DISPLAY_WIDTH_HALF)/1000)
+
+#define CIRCLE_THREE_POS_X PBL_DISPLAY_WIDTH - (CIRCLE_RADIUS + CIRCLE_CORNER_OFFSET)
+#define CIRCLE_THREE_POS_Y PBL_DISPLAY_HEIGHT_HALF
+
+#define CIRCLE_FOUR_POS_X PBL_DISPLAY_WIDTH - (CIRCLE_RADIUS + CIRCLE_CORNER_OFFSET)
+#define CIRCLE_FOUR_POS_Y PBL_DISPLAY_HEIGHT_HALF + (TANG_30_X1000*(PBL_DISPLAY_WIDTH_HALF)/1000)
+
+#define CIRCLE_FIVE_POS_X (PBL_DISPLAY_WIDTH_HALF + ((TANG_30_X1000*(PBL_DISPLAY_HEIGHT_HALF)/1000)))
+#define CIRCLE_FIVE_POS_Y PBL_DISPLAY_HEIGHT - (CIRCLE_RADIUS + CIRCLE_CORNER_OFFSET)
+
+#define CIRCLE_SIX_POS_X PBL_DISPLAY_WIDTH_HALF - CIRCLE_RADIUS
+#define CIRCLE_SIX_POS_Y PBL_DISPLAY_HEIGHT - (CIRCLE_RADIUS + CIRCLE_CORNER_OFFSET)
+
+#define CIRCLE_SEVEN_POS_X (PBL_DISPLAY_WIDTH_HALF - ((TANG_30_X1000*(PBL_DISPLAY_HEIGHT_HALF)/1000)))
+#define CIRCLE_SEVEN_POS_Y PBL_DISPLAY_HEIGHT - (CIRCLE_RADIUS + CIRCLE_CORNER_OFFSET)
+
+#define CIRCLE_EIGHT_POS_X CIRCLE_RADIUS + CIRCLE_CORNER_OFFSET
+#define CIRCLE_EIGHT_POS_Y PBL_DISPLAY_HEIGHT_HALF + (TANG_30_X1000*(PBL_DISPLAY_WIDTH_HALF)/1000)
+
+#define CIRCLE_NINE_POS_X CIRCLE_RADIUS + CIRCLE_CORNER_OFFSET
+#define CIRCLE_NINE_POS_Y PBL_DISPLAY_HEIGHT_HALF
+
+#define CIRCLE_TEN_POS_X CIRCLE_RADIUS + CIRCLE_CORNER_OFFSET
+#define CIRCLE_TEN_POS_Y PBL_DISPLAY_HEIGHT_HALF - (TANG_30_X1000*(PBL_DISPLAY_WIDTH_HALF)/1000)
+
+#define CIRCLE_ELEVEN_POS_X (PBL_DISPLAY_WIDTH_HALF - ((TANG_30_X1000*(PBL_DISPLAY_HEIGHT_HALF)/1000)))
+#define CIRCLE_ELEVEN_POS_Y CIRCLE_RADIUS + CIRCLE_CORNER_OFFSET
+
+#define CIRCLE_TWELVE_POS_X PBL_DISPLAY_WIDTH_HALF
+#define CIRCLE_TWELVE_POS_Y CIRCLE_RADIUS + CIRCLE_CORNER_OFFSET
