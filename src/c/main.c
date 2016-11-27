@@ -13,7 +13,7 @@ static void hands_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
   GPoint center = grect_center_point(&bounds);
 
-  const int16_t second_hand_length = PBL_IF_ROUND_ELSE((bounds.size.w / 2) - 19, bounds.size.w / 2);
+  const int16_t second_hand_length = bounds.size.w / 2;
 
   time_t now = time(NULL);
   struct tm *t = localtime(&now);
@@ -23,23 +23,27 @@ static void hands_update_proc(Layer *layer, GContext *ctx) {
     .y = (int16_t)(-cos_lookup(second_angle) * (int32_t)second_hand_length / TRIG_MAX_RATIO) + center.y,
   };
 
-  // second hand
+  // Draw second hand
   graphics_context_set_stroke_color(ctx, GColorBlack);
   graphics_draw_line(ctx, second_hand, center);
 
-  // minute/hour hand
+  // Draw hours hand
   graphics_context_set_fill_color(ctx, GColorBlack);
-  graphics_context_set_stroke_color(ctx, GColorWhite);
-
-  gpath_rotate_to(s_minutes_handle_path, TRIG_MAX_ANGLE * t->tm_min / 60);
-  gpath_draw_filled(ctx, s_minutes_handle_path);
-  gpath_draw_outline(ctx, s_minutes_handle_path);
 
   gpath_rotate_to(s_hours_handle_path, (TRIG_MAX_ANGLE * (((t->tm_hour % 12) * 6) + (t->tm_min / 10))) / (12 * 6));
+  //gpath_draw_outline(ctx, s_hours_handle_path);
   gpath_draw_filled(ctx, s_hours_handle_path);
-  gpath_draw_outline(ctx, s_hours_handle_path);
 
-  // dot in the middle
+  // Draw mintues hand
+  gpath_rotate_to(s_minutes_handle_path, TRIG_MAX_ANGLE * t->tm_min / 60);
+  //gpath_draw_outline(ctx, s_minutes_handle_path);
+  gpath_draw_filled(ctx, s_minutes_handle_path);
+
+  // Draw center circle
+  graphics_draw_circle(ctx, center, 5); // Draw the outline of a circle
+  graphics_fill_circle(ctx, center, 5); // Fill a circle
+
+  // Draw dot in the middle
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_rect(ctx, GRect(bounds.size.w / 2 - 1, bounds.size.h / 2 - 1, 3, 3), 0, GCornerNone);
 }
@@ -52,6 +56,7 @@ static void push_background (Window *window) {
   // Get information about the Window
   Layer *window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
+  GPoint center = grect_center_point(&bounds);
 
   // Prepare background image layer
   s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BACKGROUND);
@@ -62,8 +67,6 @@ static void push_background (Window *window) {
   // Init hand paths
   s_minutes_handle_path = gpath_create(&MINUTE_HAND_POINTS);
   s_hours_handle_path = gpath_create(&HOUR_HAND_POINTS);
-
-  GPoint center = grect_center_point(&bounds);
   gpath_move_to(s_minutes_handle_path, center);
   gpath_move_to(s_hours_handle_path, center);
 
