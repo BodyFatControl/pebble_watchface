@@ -3,128 +3,82 @@
 #include "main.h"
 
 static Window *s_main_window;
-static Layer *s_background1_layer;
-static Layer *s_background2_layer;
-static TextLayer *s_one_text_layer;
-static TextLayer *s_two_text_layer;
-static TextLayer *s_three_text_layer;
+static GBitmap *s_bitmap;
+static BitmapLayer *s_background_layer;
+static RotBitmapLayer *s_hours_hand_layer;
+static RotBitmapLayer *s_minutes_hand_layer;
 
-static void background1_layer_update_proc(Layer *layer, GContext *ctx) {
-  GRect bounds = layer_get_bounds(s_background1_layer);
-
-  // Draw the black rectangle background
-  graphics_context_set_stroke_color(ctx, GColorBlack);
-  graphics_context_set_fill_color(ctx, GColorBlack);
-  graphics_fill_rect(ctx, bounds, 0, GCornerNone);
-
-  // Draw the white rectangle background with round corners
-  graphics_context_set_stroke_color(ctx, GColorWhite);
-  graphics_context_set_fill_color(ctx, GColorWhite);
-  graphics_context_set_stroke_width(ctx, 0);
-  graphics_fill_rect(ctx, bounds, 12, GCornersAll);
+static void handleTick(struct tm *t, TimeUnits units_changed) {
+  GRect rectangle;
+  int32_t minute_angle = t->tm_sec * TRIG_MAX_ANGLE / 60;
+  int32_t hour_angle = ((t->tm_min%12)*60 + t->tm_sec) * TRIG_MAX_ANGLE / (12 * 60);
 
 
-  /* *************************************************
-   * Draw the 12 circles */
-  graphics_context_set_stroke_color(ctx, GColorBlack);
-  graphics_context_set_fill_color(ctx, GColorBlack);
-  // Draw the outline of a circle
-  graphics_draw_circle(ctx,
-		       GPoint(CIRCLE_ONE_POS_X, CIRCLE_ONE_POS_Y),
-		       CIRCLE_RADIUS);
 
-  graphics_draw_circle(ctx,
-		       GPoint(CIRCLE_TWO_POS_X, CIRCLE_TWO_POS_Y),
-		       CIRCLE_RADIUS);
+//  APP_LOG(APP_LOG_LEVEL_DEBUG, "rectangle.size.h: %d", rectangle.size.h);
+//  APP_LOG(APP_LOG_LEVEL_DEBUG, "rectangle.size.w: %d", rectangle.size.w);
+//  APP_LOG(APP_LOG_LEVEL_DEBUG, "rectangle.origin.x: %d", rectangle.origin.x);
+//  APP_LOG(APP_LOG_LEVEL_DEBUG, "rectangle.origin.y: %d", rectangle.origin.y);
+//
+//  rectangle = layer_get_frame((Layer *)s_minutes_hand_layer);
+//  rectangle.origin.x = (PBL_DISPLAY_WIDTH_HALF - rectangle.size.w/2);
+//  rectangle.origin.y = PBL_DISPLAY_HEIGHT_HALF - 68 + 6;
+//
+//  rectangle.size.w = rectangle.size.w + rectangle.size.w;
+//  rectangle.size.h = rectangle.size.h + rectangle.size.h;
+//
+//  layer_set_frame((Layer *)s_minutes_hand_layer, rectangle);
 
-  graphics_draw_circle(ctx,
-		       GPoint(CIRCLE_THREE_POS_X, CIRCLE_THREE_POS_Y),
-		       CIRCLE_RADIUS);
+  rot_bitmap_layer_set_angle(s_minutes_hand_layer, minute_angle);
 
-  graphics_draw_circle(ctx,
-		       GPoint(CIRCLE_FOUR_POS_X, CIRCLE_FOUR_POS_Y),
-		       CIRCLE_RADIUS);
-
-  graphics_draw_circle(ctx,
-		       GPoint(CIRCLE_FIVE_POS_X, CIRCLE_FIVE_POS_Y),
-		       CIRCLE_RADIUS);
-
-  graphics_draw_circle(ctx,
-		       GPoint(CIRCLE_SIX_POS_X, CIRCLE_SIX_POS_Y),
-		       CIRCLE_RADIUS);
-
-  graphics_draw_circle(ctx,
-		       GPoint(CIRCLE_SEVEN_POS_X, CIRCLE_SEVEN_POS_Y),
-		       CIRCLE_RADIUS);
-
-  graphics_draw_circle(ctx,
-		       GPoint(CIRCLE_EIGHT_POS_X, CIRCLE_EIGHT_POS_Y),
-		       CIRCLE_RADIUS);
-
-  graphics_draw_circle(ctx,
-		       GPoint(CIRCLE_NINE_POS_X, CIRCLE_NINE_POS_Y),
-		       CIRCLE_RADIUS);
-
-  graphics_draw_circle(ctx,
-		       GPoint(CIRCLE_TEN_POS_X, CIRCLE_TEN_POS_Y),
-		       CIRCLE_RADIUS);
-
-  graphics_draw_circle(ctx,
-		       GPoint(CIRCLE_ELEVEN_POS_X, CIRCLE_ELEVEN_POS_Y),
-		       CIRCLE_RADIUS);
-
-  graphics_draw_circle(ctx,
-		       GPoint(CIRCLE_TWELVE_POS_X, CIRCLE_TWELVE_POS_Y),
-		       CIRCLE_RADIUS);
-
+//  rectangle.origin.x = PBL_DISPLAY_WIDTH_HALF - rectangle.size.w/2 + 56 * cos_lookup((minuteAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+//  rectangle.origin.y = PBL_DISPLAY_HEIGHT_HALF - rectangle.size.h/2 + 56 * sin_lookup((minuteAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+//  layer_set_frame((Layer *)minuteHandLayer, r);
+//  rot_bitmap_layer_set_angle(minuteHandLayer, minuteAngle);
+//
+//  rectangle = layer_get_frame((Layer *)hourHandLayer);
+//  rectangle.origin.x = 72 - rectangle.size.w/2 + 57 * cos_lookup((hourAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+//  rectangle.origin.y = 84 - rectangle.size.h/2 + 57 * sin_lookup((hourAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+//  layer_set_frame((Layer *)hourHandLayer, r);
+//  rot_bitmap_layer_set_angle(hourHandLayer, hourAngle);
 }
 
 static void push_background (Window *window) {
+  time_t t = time(NULL);
+
   // Get information about the Window
   Layer *window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
 
-  // Properly create a full-screen Layer
-  s_background1_layer = layer_create(bounds);
-  s_background2_layer = layer_create(bounds);
+  // Prepare background image layer
+  s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BACKGROUND);
+  s_background_layer = bitmap_layer_create(GRect(0, 0, PBL_DISPLAY_WIDTH, PBL_DISPLAY_HEIGHT));
+  //bitmap_layer_set_compositing_mode(s_background_layer, GCompOpAssign);
+  bitmap_layer_set_bitmap(s_background_layer, s_bitmap);
+  layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_background_layer));
 
-  // Assign the custom drawing procedure
-  layer_set_update_proc(s_background1_layer, background1_layer_update_proc);
+  // Prepare  minutes hand layer
+  s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_MINUTES_HAND);
+  s_minutes_hand_layer = rot_bitmap_layer_create(s_bitmap);
+  rot_bitmap_set_compositing_mode(s_minutes_hand_layer, GCompOpSet);
 
-  // Redraw this as soon as possible
-  layer_mark_dirty(s_background1_layer);
+  GRect rectangle = layer_get_frame((Layer *)s_minutes_hand_layer);
+  rectangle.origin.x = (PBL_DISPLAY_WIDTH_HALF - rectangle.size.w/2);
+  rectangle.origin.y = PBL_DISPLAY_HEIGHT_HALF - 68 + 6;
+  layer_set_frame((Layer *)s_minutes_hand_layer, rectangle);
 
+  layer_add_child(window_get_root_layer(window), (Layer *)s_minutes_hand_layer);
 
+  // Prepare  hour hand layer
+  s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_HOURS_HAND);
+  s_hours_hand_layer = rot_bitmap_layer_create(s_bitmap);
+  rot_bitmap_set_compositing_mode(s_hours_hand_layer, GCompOpSet);
+//  layer_add_child(window_get_root_layer(window), (Layer *)s_hours_hand_layer);
 
+  // Draw the handles now
+  handleTick(localtime(&t), SECOND_UNIT|MINUTE_UNIT|HOUR_UNIT);
 
-//  s_one_text_layer = text_layer_create(GRect(1, 1, 8, 15));
-//  text_layer_set_text_color(s_one_text_layer, GColorBlack);
-//  text_layer_set_background_color(s_one_text_layer, GColorWhite);
-//  text_layer_set_text_color(s_one_text_layer, GColorWhite);
-//  text_layer_set_background_color(s_one_text_layer, GColorBlack);
-//  text_layer_set_overflow_mode(s_one_text_layer, GTextOverflowModeWordWrap);
-//  //text_layer_set_alignment(s_one_text_layer, GTextAlignmentCenter);
-//  text_layer_set_text(s_one_text_layer, "1");
-
-//  s_three_text_layer = text_layer_create(GRect(50 /*136 */, 75, 20, 30));
-//  text_layer_set_text_color(s_three_text_layer, GColorBlack);
-//  text_layer_set_background_color(s_three_text_layer, GColorWhite);
-////  text_layer_set_text_color(s_three_text_layer, GColorWhite);
-////  text_layer_set_background_color(s_three_text_layer, GColorBlack);
-//  text_layer_set_overflow_mode(s_three_text_layer, GTextOverflowModeWordWrap);
-//  //text_layer_set_alignment(s_one_text_layer, GTextAlignmentCenter);
-//  text_layer_set_font(s_three_text_layer, fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
-//  text_layer_set_text(s_three_text_layer, "3");
-
-  // Add to the Window
-  layer_add_child(window_layer, s_background1_layer);
-  layer_add_child(window_layer, s_background2_layer);
-//  layer_add_child(window_layer, text_layer_get_layer(s_three_text_layer));
-
-
-
-
-
+  tick_timer_service_subscribe(SECOND_UNIT, handleTick);
 }
 
 static void main_window_load(Window *window) {
@@ -133,11 +87,10 @@ static void main_window_load(Window *window) {
 }
 
 static void main_window_unload(Window *window) {
-  // Destroy Layer
-  layer_destroy(s_background1_layer);
-  text_layer_destroy(s_one_text_layer);
-  text_layer_destroy(s_two_text_layer);
-  text_layer_destroy(s_three_text_layer);
+  gbitmap_destroy(s_bitmap);
+  bitmap_layer_destroy(s_background_layer);
+  rot_bitmap_layer_destroy(s_hours_hand_layer);
+  rot_bitmap_layer_destroy(s_minutes_hand_layer);
 }
 
 static void init() {
