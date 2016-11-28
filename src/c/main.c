@@ -14,8 +14,9 @@ static TextLayer *s_calories_label;
 
 static void calories_update_proc(Layer *layer, GContext *ctx) {
   static char s_value_buffer[8];
-  int cals = health_service_sum_today(HealthMetricRestingKCalories) + health_service_sum_today(HealthMetricActiveKCalories);
-  snprintf(s_value_buffer, sizeof(s_value_buffer), "%d", cals);
+  //int value = health_service_sum_today(HealthMetricRestingKCalories) + health_service_sum_today(HealthMetricActiveKCalories);
+  int value = health_service_sum_today(HealthMetricActiveSeconds);
+  snprintf(s_value_buffer, sizeof(s_value_buffer), "%.1d:%.2d", value/(60 * 60), value/60);
   text_layer_set_text(s_calories_label, s_value_buffer);
 }
 
@@ -86,10 +87,10 @@ static void push_background (Window *window) {
   layer_add_child(window_layer, s_calories_layer);
 
   // Calories label
-  s_calories_label = text_layer_create(GRect((PBL_DISPLAY_WIDTH / 2) - 20, (PBL_DISPLAY_HEIGHT - 55), 40, 20));
+  s_calories_label = text_layer_create(GRect((PBL_DISPLAY_WIDTH / 2) - 20, (PBL_DISPLAY_HEIGHT - 60), 42, 26));
   text_layer_set_background_color(s_calories_label, GColorClear);
   text_layer_set_text_color(s_calories_label, GColorBlack);
-  text_layer_set_font(s_calories_label, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
+  text_layer_set_font(s_calories_label, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   text_layer_set_text_alignment(s_calories_label, GTextAlignmentCenter);
 
   layer_add_child(s_calories_layer, text_layer_get_layer(s_calories_label));
