@@ -16,7 +16,9 @@ static void calories_update_proc(Layer *layer, GContext *ctx) {
   static char s_value_buffer[8];
   //int value = health_service_sum_today(HealthMetricRestingKCalories) + health_service_sum_today(HealthMetricActiveKCalories);
   int value = health_service_sum_today(HealthMetricActiveSeconds);
-  snprintf(s_value_buffer, sizeof(s_value_buffer), "%.1d:%.2d", value/(60 * 60), value/60);
+  int hours = value / (60 * 60);
+  int minutes = (value / 60) - (hours * 60);
+  snprintf(s_value_buffer, sizeof(s_value_buffer), "%.1d:%.2d", hours, minutes);
   text_layer_set_text(s_calories_label, s_value_buffer);
 }
 
