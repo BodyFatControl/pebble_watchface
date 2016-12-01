@@ -11,20 +11,11 @@ static GPath *s_hours_handle_path;
 static Layer *s_hands_layer;
 static Layer *s_calories_layer;
 static TextLayer *s_calories_label;
-
-static void calories_update_proc(Layer *layer, GContext *ctx) {
-  static char s_value_buffer[8];
-  //int value = health_service_sum_today(HealthMetricRestingKCalories) + health_service_sum_today(HealthMetricActiveKCalories);
-  int value = health_service_sum_today(HealthMetricActiveSeconds);
-  int hours = value / (60 * 60);
-  int minutes = (value / 60) - (hours * 60);
-  snprintf(s_value_buffer, sizeof(s_value_buffer), "%.1d:%.2d", hours, minutes);
-  text_layer_set_text(s_calories_label, s_value_buffer);
-}
+static int minutes = 0;
 
 static void hands_update_proc(Layer *layer, GContext *ctx) {
-  GRect bounds = layer_get_bounds(layer);
-  GPoint center = grect_center_point(&bounds);
+  const GRect bounds = layer_get_bounds(layer);
+  const GPoint center = grect_center_point(&bounds);
 
   const int16_t second_hand_length = bounds.size.w / 2;
 
@@ -36,13 +27,13 @@ static void hands_update_proc(Layer *layer, GContext *ctx) {
   gpath_rotate_to(s_seconds_handle_path, TRIG_MAX_ANGLE * t->tm_sec / 60);
   gpath_draw_outline(ctx, s_seconds_handle_path);
 
-  // Draw hours hand
-  gpath_rotate_to(s_hours_handle_path, (TRIG_MAX_ANGLE * (((t->tm_hour % 12) * 6) + (t->tm_min / 10))) / (12 * 6));
-  gpath_draw_filled(ctx, s_hours_handle_path);
-
   // Draw mintues hand
   gpath_rotate_to(s_minutes_handle_path, TRIG_MAX_ANGLE * t->tm_min / 60);
   gpath_draw_filled(ctx, s_minutes_handle_path);
+
+  // Draw hours hand
+  gpath_rotate_to(s_hours_handle_path, (TRIG_MAX_ANGLE * (((t->tm_hour % 12) * 6) + (t->tm_min / 10))) / (12 * 6));
+  gpath_draw_filled(ctx, s_hours_handle_path);
 
   // Draw center circle
   graphics_draw_circle(ctx, center, 5); // Draw the outline of a circle
@@ -51,6 +42,21 @@ static void hands_update_proc(Layer *layer, GContext *ctx) {
   // Draw dot in the middle
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_rect(ctx, GRect(bounds.size.w / 2 - 1, bounds.size.h / 2 - 1, 3, 3), 0, GCornerNone);
+
+  // Verify if 1 minute passed to update the Active Seconds value on display
+  if (t->tm_min != minutes) {
+      minutes = t->tm_min;
+
+      static char s_value_buffer[8];
+      //int value = health_service_sum_today(HealthMetricRestingKCalories) + health_service_sum_today(HealthMetricActiveKCalories);
+      int seconds_active = health_service_sum_today(HealthMetricActiveSeconds);
+      int hours_active = seconds_active / (60 * 60);
+      int minutes_active = (seconds_active / 60) - (hours_active * 60);
+      snprintf(s_value_buffer, sizeof(s_value_buffer), "%.1d:%.2d", hours_active, minutes_active);
+      text_layer_set_text(s_calories_label, s_value_buffer);
+
+      //APP_LOG(APP_LOG_LEVEL_DEBUG, "cals update %d", t->tm_sec);
+  }
 }
 
 static void handle_second_tick(struct tm *tick_time, TimeUnits units_changed) {
@@ -85,11 +91,11 @@ static void push_background (Window *window) {
 
   /* Calories */
   s_calories_layer = layer_create(bounds);
-  layer_set_update_proc(s_calories_layer, calories_update_proc);
+  //layer_set_update_proc(s_calories_layer, calories_update_proc);
   layer_add_child(window_layer, s_calories_layer);
 
   // Calories label
-  s_calories_label = text_layer_create(GRect((PBL_DISPLAY_WIDTH / 2) - 20, (PBL_DISPLAY_HEIGHT - 60), 42, 26));
+  s_calories_label = text_layer_create(GRect((PBL_DISPLAY_WIDTH / 2) - 30, (PBL_DISPLAY_HEIGHT - 60), 62, 25));
   text_layer_set_background_color(s_calories_label, GColorClear);
   text_layer_set_text_color(s_calories_label, GColorBlack);
   text_layer_set_font(s_calories_label, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
