@@ -13,19 +13,31 @@ static Layer *s_calories_layer;
 static TextLayer *s_calories_label;
 static int minutes = 0;
 
+static void handle_second_tick(struct tm *tick_time, TimeUnits units_changed) {
+  // try saving the battery by not drawing at minute only when in quite time
+  if (quiet_time_is_active()) {
+      if (units_changed & MINUTE_UNIT) {
+	  layer_mark_dirty(window_get_root_layer(s_main_window));
+      }
+  } else {
+      layer_mark_dirty(window_get_root_layer(s_main_window));
+  }
+}
+
 static void hands_update_proc(Layer *layer, GContext *ctx) {
   const GRect bounds = layer_get_bounds(layer);
   const GPoint center = grect_center_point(&bounds);
 
-  const int16_t second_hand_length = bounds.size.w / 2;
-
   time_t now = time(NULL);
   struct tm *t = localtime(&now);
 
-  // Draw second hand
-  graphics_context_set_fill_color(ctx, GColorBlack);
-  gpath_rotate_to(s_seconds_handle_path, TRIG_MAX_ANGLE * t->tm_sec / 60);
-  gpath_draw_outline(ctx, s_seconds_handle_path);
+  // try saving the battery by not drawing the second hand when in quite time
+  if (!quiet_time_is_active()) {
+      // Draw second hand
+      graphics_context_set_fill_color(ctx, GColorBlack);
+      gpath_rotate_to(s_seconds_handle_path, TRIG_MAX_ANGLE * t->tm_sec / 60);
+      gpath_draw_outline(ctx, s_seconds_handle_path);
+  }
 
   // Draw mintues hand
   gpath_rotate_to(s_minutes_handle_path, TRIG_MAX_ANGLE * t->tm_min / 60);
@@ -43,12 +55,12 @@ static void hands_update_proc(Layer *layer, GContext *ctx) {
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_rect(ctx, GRect(bounds.size.w / 2 - 1, bounds.size.h / 2 - 1, 3, 3), 0, GCornerNone);
 
-  // Verify if 1 minute passed to update the Active Seconds value on display
+  // Verify if 1 minute passed to update -- try to save battery
   if (t->tm_min != minutes) {
       minutes = t->tm_min;
-
       static char s_value_buffer[8];
-      //int value = health_service_sum_today(HealthMetricRestingKCalories) + health_service_sum_today(HealthMetricActiveKCalories);
+//      int value = health_service_sum_today(HealthMetricRestingKCalories) + health_service_sum_today(HealthMetricActiveKCalories);
+//      snprintf(s_value_buffer, sizeof(s_value_buffer), "%d", value);
       int seconds_active = health_service_sum_today(HealthMetricActiveSeconds);
       int hours_active = seconds_active / (60 * 60);
       int minutes_active = (seconds_active / 60) - (hours_active * 60);
@@ -57,10 +69,6 @@ static void hands_update_proc(Layer *layer, GContext *ctx) {
 
       //APP_LOG(APP_LOG_LEVEL_DEBUG, "cals update %d", t->tm_sec);
   }
-}
-
-static void handle_second_tick(struct tm *tick_time, TimeUnits units_changed) {
-  layer_mark_dirty(window_get_root_layer(s_main_window));
 }
 
 static void push_background (Window *window) {
